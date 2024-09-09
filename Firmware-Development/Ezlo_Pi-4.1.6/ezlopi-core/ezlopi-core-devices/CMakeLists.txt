@@ -88,6 +88,7 @@ set(EZLOPI_SENSOR_DEVICE_COMPONENTS
         sensor-0069-UART-ze08-ch02-gas-sensor
 
         sensor-0070-ADC-dummy-potentiometer
+        device_0071_other_addressable_RGB
 )
 
 
