@@ -16,14 +16,14 @@
 #include "device_0071_other_addressable_RGB.h"
 
 /* Argb led driver Specfic includes*/
-// #include "config.h"
-// #include "led.h"
-// #include "led_server.h"
+#include "config.h"
+#include "led.h"
+#include "led_server.h"
 
 /* Global Declarations */
 static l_ezlopi_device_t *device = NULL;
 static bool ws2812_led_strip_initialized = false;
-// struct LED_CONFIG* led_config;
+struct LED_CONFIG* led_config;
 
 /* Prototype */
 static int __prepare(void *arg);
@@ -195,12 +195,12 @@ static int __init(l_ezlopi_item_t *item)
     {
         // vTaskDelay(5000/portTICK_PERIOD_MS);
         // server_init();
-        // start_webserver();
+        start_webserver();
         vTaskDelay(1000/portTICK_PERIOD_MS);
-        // config_init();
-        // led_on(item->interface.gpio.gpio_out.gpio_num);
-        // config_update_channels();
-        // led_config = config_return_config_pointer();
+        config_init();
+        led_on(item->interface.gpio.gpio_out.gpio_num);
+        config_update_channels();
+        led_config = config_return_config_pointer();
         ws2812_led_strip_initialized = true;
     }
 

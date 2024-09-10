@@ -14,8 +14,8 @@ idf_component_register(SRCS "device_0071_other_addressable_RGB.c"
 
                             # esp_netif
 
-                            # led
-                            # config
-                            # led_server
+                            led
+                            config
+                            led_server
                         )
 
