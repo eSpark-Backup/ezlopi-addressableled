@@ -112,15 +112,7 @@ static void __prepare_device_properties(l_ezlopi_device_t *device, cJSON *cj_dev
     device->cloud_properties.subcategory = subcategory_addressable_main;
     device->cloud_properties.device_type = dev_type_device;
 
-    device->cloud_properties.device_id = ezlopi_cloud_generate_device_id();
-
-    l_ezlopi_device_settings_v3_t *device_setting = (l_ezlopi_device_settings_v3_t*)malloc(sizeof(l_ezlopi_device_settings_v3_t));
-    device_setting->cloud_properties.setting_id = ezlopi_cloud_generate_item_id();
-    device_setting->cloud_properties.device_id = device->cloud_properties.device_id;
-    device_setting->func = device_0071_other_addressable_RGB_settings;
-    device_setting->next = NULL;
-
-    device->settings = device_setting;
+    l_ezlopi_device_settings_v3_t *device_setting = ezlopi_device_add_settings_to_device_v3(device, device_0071_other_addressable_RGB_settings);
 }
 
 static void __prepare_WS2812_LED_onoff_switch_item(l_ezlopi_item_t *item, cJSON *cj_device)
@@ -165,7 +157,7 @@ static int device_0071_other_addressable_RGB_settings(e_ezlopi_settings_action_t
 
         // Add properties to "label" object
         cJSON_AddStringToObject(__FUNCTION__, desc, "text", "The IP address of this instance.");
-        cJSON_AddStringToObject(__FUNCTION__, desc, "lang_tag", "addressable_led_ip_address_label");
+        cJSON_AddStringToObject(__FUNCTION__, desc, "lang_tag", "addressable_led_ip_address_description");
 
         cJSON_AddBoolToObject(__FUNCTION__, params, "hasSetter", false);
         cJSON_AddStringToObject(__FUNCTION__, params, "valueType", "string");
