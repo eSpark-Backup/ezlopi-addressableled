@@ -18,7 +18,7 @@ static int ezlopi_service_broadcast_send_to_queue(cJSON* cj_broadcast_data);
 
 void ezlopi_service_broadcast_init(void)
 {
-    __broadcast_queue = xQueueCreate(10, sizeof(cJSON*));
+    __broadcast_queue = xQueueCreate(30, sizeof(cJSON*));
     if (__broadcast_queue)
     {
         ezlopi_core_broadcast_methods_set_queue(ezlopi_service_broadcast_send_to_queue);
