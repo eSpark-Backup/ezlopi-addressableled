@@ -259,5 +259,9 @@ EZLOPI_DEVICE_LIST("sensor-ze08-ch02-gas-sensor         ", 69, sensor_0069_ze08_
 EZLOPI_DEVICE_LIST("sensor-dummy-potentiometer-ADC      ", 70, sensor_0070_ADC_dummy_potentiometer)
 #endif // SENSOR_0070_ADC_DUMMY_POTENTIOMETER
 
+#if (1 == DEVICE_0071_OTHER_ADDRESSSABLE_LED)
+EZLOPI_DEVICE_LIST("device-other-addressable-RGB         ", 71, device_0071_other_addressable_RGB)
+#endif // DEVICE_0071_OTHER_ADDRESSSABLE_LED
+
 //////// End of sensor/device list
 EZLOPI_DEVICE_LIST(NULL, 0, NULL)

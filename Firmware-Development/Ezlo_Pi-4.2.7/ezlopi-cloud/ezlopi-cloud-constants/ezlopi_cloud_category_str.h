@@ -41,5 +41,6 @@ extern const char *category_flow_meter;
 // extern const  char *category_state_sensor;
 extern const char *category_level_sensor;
 // extern const  char *category_clock;
+extern const char *category_led_strip;
 
 #endif // __EZLOPI_CATEGORY_H__

@@ -72,4 +72,6 @@
 #include "sensor_0069_ze08_ch02_gas_sensor.h"
 
 #include "sensor_0070_ADC_dummy_potentiometer.h"
+#include "device_0071_other_addressable_RGB.h"
+
 #endif // _EZLOPI_CORE_DEVICES_LIST_INCLUDES_H_

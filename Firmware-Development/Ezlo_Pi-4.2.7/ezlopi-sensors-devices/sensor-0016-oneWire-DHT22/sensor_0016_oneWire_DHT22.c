@@ -1,4 +1,3 @@
-#if (CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32 || CONFIG_IDF_TARGET_ESP32S2)
 
 #include <math.h>
 #include "cjext.h"
@@ -317,4 +316,4 @@ static ezlopi_error_t dht22_sensor_setup_item_properties_humidity(l_ezlopi_item_
     return ret;
 }
 
-#endif // (CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32 || CONFIG_IDF_TARGET_ESP32S2)
+// #endif // (CONFIG_IDF_TARGET_ESP32S3 || CONFIG_IDF_TARGET_ESP32 || CONFIG_IDF_TARGET_ESP32S2)
