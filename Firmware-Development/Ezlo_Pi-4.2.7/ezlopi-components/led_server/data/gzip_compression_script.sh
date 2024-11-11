@@ -16,12 +16,34 @@ FINAL_HEADER_PATH="../compressed_webpage_files"  # Adjust the destination folder
 mkdir -p "$COMPRESSED_FOLDER"
 mkdir -p "$HEADER_FOLDER"
 
-# Compress HTML, CSS, and JS files using 7-Zip and move them to the compressed folder
-"C:\Program Files\7-Zip\7z.exe" a -tgzip "$COMPRESSED_FOLDER/index.html.gz" "index.htm"
-"C:\Program Files\7-Zip\7z.exe" a -tgzip "$COMPRESSED_FOLDER/index.css.gz" "index.css"
-"C:\Program Files\7-Zip\7z.exe" a -tgzip "$COMPRESSED_FOLDER/index.js.gz" "index.js"
-"C:\Program Files\7-Zip\7z.exe" a -tgzip "$COMPRESSED_FOLDER/iro.js.gz" "iro.js"
-"C:\Program Files\7-Zip\7z.exe" a -tgzip "$COMPRESSED_FOLDER/rangetouch.js.gz" "rangetouch.js"
+# Determine OS and set commands for compression
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
+    # Windows
+    COMPRESS_CMD='"C:\Program Files\7-Zip\7z.exe" a -tgzip'
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Linux
+    COMPRESS_CMD="gzip -c"
+else
+    echo "Unsupported OS"
+    exit 1
+fi
+
+# Compress HTML, CSS, and JS files and move them to the compressed folder
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
+    # Use 7-Zip on Windows
+    $COMPRESS_CMD "$COMPRESSED_FOLDER/index.html.gz" "index.htm"
+    $COMPRESS_CMD "$COMPRESSED_FOLDER/index.css.gz" "index.css"
+    $COMPRESS_CMD "$COMPRESSED_FOLDER/index.js.gz" "index.js"
+    $COMPRESS_CMD "$COMPRESSED_FOLDER/iro.js.gz" "iro.js"
+    $COMPRESS_CMD "$COMPRESSED_FOLDER/rangetouch.js.gz" "rangetouch.js"
+else
+    # Use gzip on Linux
+    $COMPRESS_CMD "index.htm" > "$COMPRESSED_FOLDER/index.html.gz"
+    $COMPRESS_CMD "index.css" > "$COMPRESSED_FOLDER/index.css.gz"
+    $COMPRESS_CMD "index.js" > "$COMPRESSED_FOLDER/index.js.gz"
+    $COMPRESS_CMD "iro.js" > "$COMPRESSED_FOLDER/iro.js.gz"
+    $COMPRESS_CMD "rangetouch.js" > "$COMPRESSED_FOLDER/rangetouch.js.gz"
+fi
 
 # Convert compressed files to C-style arrays using xxd and declare as const arrays
 xxd -i -g 1 "$COMPRESSED_FOLDER/index.html.gz" | sed "s/^unsigned/const unsigned/; s/^unsigned/const unsigned/; s/^\(\s*\)unsigned char.*/\1const unsigned char $INDEX_HTML_VAR\[\] = {/" > "$HEADER_FOLDER/$INDEX_HTML_VAR.h"
