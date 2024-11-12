@@ -160,7 +160,7 @@ struct FX_SEGMENT { // 20 bytes
   };
 };
 
-struct FX_SEGMENT *fx_segments[MAX_SEGMENTS];
+struct FX_SEGMENT *fx_segments[MAX_SEGMENTS] = {0};
 
 #define CYCLE (uint8_t)0x40
 
@@ -220,6 +220,13 @@ void WS2812FX_deinit(int line){
 void WS2812FX_call(int line, uint16_t (*fct)(int)) {
   uint32_t now = xTaskGetTickCount();
 
+  // ESP_LOGI("TAG", "LINE call %d", line);
+
+  if(NULL == SEGMENT)
+  {
+    return;
+  }
+  
   switch (SEGMENT->palette)
   {
   case DEFAULT_PALETTE:

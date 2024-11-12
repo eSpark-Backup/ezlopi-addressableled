@@ -68,158 +68,243 @@ void parse_json(char* start){
     if(root != NULL){
         // char *string = cJSON_Print(__FUNCTION__, root);
 
-        cJSON* seg = cJSON_GetObjectItemCaseSensitive(root, "seg");
-
-        if(cJSON_IsArray(seg))
-        {
-            // "seg" is an array
-            cJSON *seg_item;
-            uint8_t item_index = 0;
-            cJSON_ArrayForEach(seg_item, seg) {
-                cJSON *id = cJSON_GetObjectItemCaseSensitive(seg_item, "id");
-                cJSON *sel = cJSON_GetObjectItemCaseSensitive(seg_item, "sel");
-                cJSON *start = cJSON_GetObjectItemCaseSensitive(seg_item, "start");
-                cJSON *stop = cJSON_GetObjectItemCaseSensitive(seg_item, "stop");
-
-                if (cJSON_IsNumber(id) && cJSON_IsBool(sel)) {
-                    int segment_id = id->valueint;
-                    bool selected = cJSON_IsTrue(sel); // cJSON stores boolean as int (0 or 1)
-                    config_set_selected_flag(segment_id, selected);
-                } else {
-                    printf("Error: Invalid 'id' or 'sel' value.\n");
-                }
-
-                if(cJSON_IsNumber(start) && cJSON_IsNumber(stop) && cJSON_IsBool(sel))
-                {
-                    int a_start = start->valueint;
-                    int a_stop = stop->valueint;
-                    config_set_segment_start_stop(item_index, a_start, a_stop-1);
-                    config_set_selected_flag(item_index, cJSON_IsTrue(sel));
-                }
-                if(!cJSON_IsNumber(start) && cJSON_IsNumber(stop))
-                {
-                    config_delete_segment(item_index);
-                }
-
-                item_index++;
-            }
-        }
-
-        cJSON* fx = cJSON_GetObjectItemCaseSensitive(seg, "fx");
-        if(fx != NULL){
-            config_setMode((uint8_t)fx->valueint);
-        }
-
-        cJSON* sx = cJSON_GetObjectItemCaseSensitive(seg, "sx");
-        if(sx != NULL){
-            config_set_effect_speed((uint8_t)sx->valueint);
-        }
-
-        cJSON* ix = cJSON_GetObjectItemCaseSensitive(seg, "ix");
-        if(ix != NULL){
-            config_set_effect_intensity((uint8_t)ix->valueint);
-        }
-
-        cJSON* col = cJSON_GetObjectItemCaseSensitive(seg, "col");
-        for (int i = 0; i < cJSON_GetArraySize(col); i++) {
-        cJSON* subitem = cJSON_GetArrayItem(col, i);
-
-            if (cJSON_IsArray(subitem) && cJSON_GetArraySize(subitem) == 4) {
-                // Extract all 4 items from the subarray to form a 32-bit color
-                uint32_t color = 0;
-                for (int j = 0; j < 4; j++) {
-                    cJSON* subsubitem = cJSON_GetArrayItem(subitem, j);
-                    if (cJSON_IsNumber(subsubitem)) {
-                        color |= ((uint32_t)(subsubitem->valueint) << (8 * (2 - j)));
-                    }
-                }
-
-                // Set the color using config_set_single_color
-                config_set_single_color(color, i);  // i + 1 represents the color index
-            }
-        }
-
-        cJSON* id = cJSON_GetObjectItemCaseSensitive(seg, "id");
-        if(id != NULL){
-            cJSON* on = cJSON_GetObjectItemCaseSensitive(seg, "on");
-            if(on != NULL)            
-            {
-                config_set_segment_on_status(id->valueint, cJSON_IsTrue(on));
-            }
-            cJSON* set = cJSON_GetObjectItemCaseSensitive(seg, "set");
-            if(set != NULL)
-            {
-                config_set_group(id->valueint, set->valueint);
-            }
-            // Get "id" and "bri" values from "seg" object
-            cJSON *bri = cJSON_GetObjectItem(__FUNCTION__, seg, "bri");
-
-            if (cJSON_IsNumber(id) && cJSON_IsNumber(bri)) {
-                // Print the extracted values
-                printf("ID: %d\n", id->valueint);
-                printf("Bri: %d\n", bri->valueint);
-                config_set_segment_brightness(bri->valueint, id->valueint);
-            }
-
-            //set the selected flag of segment to true or false
-            cJSON* sel = cJSON_GetObjectItemCaseSensitive(seg, "sel");
-            if(sel != NULL){
-                ESP_LOGI(TAG, "SEG id : %d is selected %d", id->valueint, cJSON_IsTrue(sel));
-                config_set_selected_flag(id->valueint, cJSON_IsTrue(sel));
-            }
-
-            cJSON* n = cJSON_GetObjectItemCaseSensitive(seg, "n");
-            if(n != NULL){
-                ESP_LOGI(TAG, "Name of Segment : %s", n->valuestring);
-                int seg_id = id->valueint;
-                cJSON* start = cJSON_GetObjectItemCaseSensitive(seg, "start");
-                cJSON* stop = cJSON_GetObjectItemCaseSensitive(seg, "stop");
-                if(start == NULL && stop == NULL){
-                    
-                }
-                else if((start != NULL) & (stop != NULL)){
-                    int seg_start, seg_stop;
-                    seg_start = start->valueint;
-                    seg_stop = stop->valueint;
-                    ESP_LOGI(TAG, "Segment Start: %d", seg_start);
-                    config_set_segment_start_stop(seg_id, seg_start, seg_stop-1);
-                }
-
-                {
-                    config_set_segment_name(seg_id, n->valuestring);
-                }
-
-            }
-
-
-            cJSON* rev = cJSON_GetObjectItemCaseSensitive(seg, "rev");
-            if(NULL != rev){
-                // config_set_reverse_option(id->valueint, cJSON_IsTrue(rev));
-                config_set_option(id->valueint, cJSON_IsTrue(rev), 0x80);
-            }
-
-            cJSON* mirror =  cJSON_GetObjectItemCaseSensitive(seg, "mir");
-            
-            cJSON* delete = cJSON_GetObjectItemCaseSensitive(seg, "stop");
-            if((NULL != delete) && (NULL == n)){
-                ESP_LOGI(TAG, "Delete Json parsing working");
-                config_delete_segment(id->valueint);
-            }
-
-        }
-
-        cJSON* pal = cJSON_GetObjectItemCaseSensitive(seg, "pal");
-        if(pal != NULL){
-            config_apply_palette(pal->valueint);
-        }
-
         cJSON* bri = cJSON_GetObjectItemCaseSensitive(root, "bri");
         if(bri != NULL){
             ESP_LOGW(TAG, "Setting Brightness : %d", bri->valueint);
             config_set_brightness(bri->valueint);
         }
 
+        cJSON* seg = cJSON_GetObjectItemCaseSensitive(root, "seg");
+
+        uint8_t item_index = 0;
+        if(cJSON_IsArray(seg))
+        {
+            // "seg" is an array
+            cJSON *seg_item;
+            cJSON_ArrayForEach(seg_item, seg) {
+
+                cJSON *id = cJSON_GetObjectItemCaseSensitive(seg_item, "id");
+                cJSON *start = cJSON_GetObjectItemCaseSensitive(seg_item, "start");
+                cJSON *stop = cJSON_GetObjectItemCaseSensitive(seg_item, "stop");
+                cJSON *sel = cJSON_GetObjectItemCaseSensitive(seg_item, "sel");
+                
+
+                if (cJSON_IsNumber(id)) {
+                    
+                    if(cJSON_IsNumber(start) && cJSON_IsNumber(stop))
+                    {
+                        printf("Changing segment start stop");
+                        int a_start = start->valueint;
+                        int a_stop = stop->valueint;
+                        config_set_segment_start_stop(id->valueint, a_start, a_stop-1);
+                        config_set_selected_flag(id->valueint, true);
+                        vTaskDelay(1000/portTICK_PERIOD_MS);
+                        // config_set_selected_flag(id->valueint, cJSON_IsTrue(sel));
+                    }
+                    // if(!cJSON_IsNumber(start) && cJSON_IsNumber(stop))
+                    // {
+                    //     config_delete_segment(id->valueint);
+                    // }
+
+                    cJSON* on = cJSON_GetObjectItemCaseSensitive(seg_item, "on");
+                    if(on != NULL)            
+                    {
+                        config_set_segment_on_status(id->valueint, cJSON_IsTrue(on));
+                    }
+                    cJSON* set = cJSON_GetObjectItemCaseSensitive(seg_item, "set");
+                    if(set != NULL)
+                    {
+                        config_set_group(id->valueint, set->valueint);
+                    }                    
+
+                    cJSON *bri = cJSON_GetObjectItem(__FUNCTION__, seg_item, "bri");
+                    if (cJSON_IsNumber(bri)) {
+                        // Print the extracted values
+                        printf("ID: %d\n", id->valueint);
+                        printf("Bri: %d\n", bri->valueint);
+                        config_set_segment_brightness(bri->valueint, id->valueint);
+                    }
+
+                    cJSON* rev = cJSON_GetObjectItemCaseSensitive(seg_item, "rev");
+                    if(NULL != rev){
+                        // config_set_reverse_option(id->valueint, cJSON_IsTrue(rev));
+                        config_set_option(id->valueint, cJSON_IsTrue(rev), 0x80);
+                    }
+
+                    cJSON* n = cJSON_GetObjectItemCaseSensitive(seg_item, "n");
+                    if(NULL != n)
+                    {
+                        config_set_segment_name(id->valueint, n->valuestring);
+                    }
+
+                    cJSON* fx = cJSON_GetObjectItemCaseSensitive(seg_item, "fx");
+                    if(fx != NULL){
+                        config_setMode((uint8_t)fx->valueint);
+                    }
+
+                    cJSON* pal = cJSON_GetObjectItemCaseSensitive(seg, "pal");
+                    if(pal != NULL){
+                        config_apply_palette(pal->valueint);
+                    }
+
+                    cJSON* sx = cJSON_GetObjectItemCaseSensitive(seg_item, "sx");
+                    if(sx != NULL){
+                        config_set_effect_speed((uint8_t)sx->valueint);
+                    }
+
+                    cJSON* ix = cJSON_GetObjectItemCaseSensitive(seg_item, "ix");
+                    if(ix != NULL){
+                        config_set_effect_intensity((uint8_t)ix->valueint);
+                    }
+
+                    cJSON* col = cJSON_GetObjectItemCaseSensitive(seg_item, "col");
+                    for (int i = 0; i < cJSON_GetArraySize(col); i++) {
+                        cJSON* subitem = cJSON_GetArrayItem(col, i);
+
+                        if (cJSON_IsArray(subitem) && cJSON_GetArraySize(subitem) == 4) {
+                            // Extract all 4 items from the subarray to form a 32-bit color
+                            uint32_t color = 0;
+                            for (int j = 0; j < 4; j++) {
+                                cJSON* subsubitem = cJSON_GetArrayItem(subitem, j);
+                                if (cJSON_IsNumber(subsubitem)) {
+                                    color |= ((uint32_t)(subsubitem->valueint) << (8 * (2 - j)));
+                                }
+                            }
+
+                            // Set the color using config_set_single_color
+                            config_set_single_color(color, i);  // i + 1 represents the color index
+                        }
+                    }
+
+                    // if(sel != NULL)
+                    // {
+                    //     int segment_id = id->valueint;
+                    //     bool selected = cJSON_IsTrue(sel); // cJSON stores boolean as int (0 or 1)
+                    //     config_set_selected_flag(segment_id, selected);
+                    // }
+                    config_set_selected_flag(id->valueint, false);
+                    // vTaskDelay(400/portTICK_PERIOD_MS);
+                    item_index++;
+                } 
+            }
+
+            for(int i = 0; i < item_index; i++)
+            {
+                config_set_selected_flag(i, true);
+            }
+        }
+        else
+        {
+            cJSON* fx = cJSON_GetObjectItemCaseSensitive(seg, "fx");
+            if(fx != NULL){
+                config_setMode((uint8_t)fx->valueint);
+            }
+
+            cJSON* sx = cJSON_GetObjectItemCaseSensitive(seg, "sx");
+            if(sx != NULL){
+                config_set_effect_speed((uint8_t)sx->valueint);
+            }
+
+            cJSON* ix = cJSON_GetObjectItemCaseSensitive(seg, "ix");
+            if(ix != NULL){
+                config_set_effect_intensity((uint8_t)ix->valueint);
+            }
+
+            cJSON* col = cJSON_GetObjectItemCaseSensitive(seg, "col");
+            for (int i = 0; i < cJSON_GetArraySize(col); i++) {
+                cJSON* subitem = cJSON_GetArrayItem(col, i);
+
+                if (cJSON_IsArray(subitem) && cJSON_GetArraySize(subitem) == 4) {
+                    // Extract all 4 items from the subarray to form a 32-bit color
+                    uint32_t color = 0;
+                    for (int j = 0; j < 4; j++) {
+                        cJSON* subsubitem = cJSON_GetArrayItem(subitem, j);
+                        if (cJSON_IsNumber(subsubitem)) {
+                            color |= ((uint32_t)(subsubitem->valueint) << (8 * (2 - j)));
+                        }
+                    }
+
+                    // Set the color using config_set_single_color
+                    config_set_single_color(color, i);  // i + 1 represents the color index
+                }
+            }
+
         
+
+            cJSON* id = cJSON_GetObjectItemCaseSensitive(seg, "id");
+            if(id != NULL){
+                cJSON* on = cJSON_GetObjectItemCaseSensitive(seg, "on");
+                if(on != NULL)            
+                {
+                    config_set_segment_on_status(id->valueint, cJSON_IsTrue(on));
+                }
+                cJSON* set = cJSON_GetObjectItemCaseSensitive(seg, "set");
+                if(set != NULL)
+                {
+                    config_set_group(id->valueint, set->valueint);
+                }
+                // Get "id" and "bri" values from "seg" object
+                cJSON *bri = cJSON_GetObjectItem(__FUNCTION__, seg, "bri");
+
+                if (cJSON_IsNumber(id) && cJSON_IsNumber(bri)) {
+                    // Print the extracted values
+                    printf("ID: %d\n", id->valueint);
+                    printf("Bri: %d\n", bri->valueint);
+                    config_set_segment_brightness(bri->valueint, id->valueint);
+                }
+
+                //set the selected flag of segment to true or false
+                cJSON* sel = cJSON_GetObjectItemCaseSensitive(seg, "sel");
+                if(sel != NULL){
+                    ESP_LOGI(TAG, "SEG id : %d is selected %d", id->valueint, cJSON_IsTrue(sel));
+                    config_set_selected_flag(id->valueint, cJSON_IsTrue(sel));
+                }
+
+                cJSON* n = cJSON_GetObjectItemCaseSensitive(seg, "n");
+                if(n != NULL){
+                    ESP_LOGI(TAG, "Name of Segment : %s", n->valuestring);
+                    int seg_id = id->valueint;
+                    cJSON* start = cJSON_GetObjectItemCaseSensitive(seg, "start");
+                    cJSON* stop = cJSON_GetObjectItemCaseSensitive(seg, "stop");
+                    if(start == NULL && stop == NULL){
+                        
+                    }
+                    else if((start != NULL) & (stop != NULL)){
+                        int seg_start, seg_stop;
+                        seg_start = start->valueint;
+                        seg_stop = stop->valueint;
+                        ESP_LOGI(TAG, "Segment Start: %d", seg_start);
+                        config_set_segment_start_stop(seg_id, seg_start, seg_stop-1);
+                    }
+
+                    {
+                        config_set_segment_name(seg_id, n->valuestring);
+                    }
+
+                }
+
+
+                cJSON* rev = cJSON_GetObjectItemCaseSensitive(seg, "rev");
+                if(NULL != rev){
+                    // config_set_reverse_option(id->valueint, cJSON_IsTrue(rev));
+                    config_set_option(id->valueint, cJSON_IsTrue(rev), 0x80);
+                }
+
+                cJSON* mirror =  cJSON_GetObjectItemCaseSensitive(seg, "mir");
+                
+                cJSON* delete = cJSON_GetObjectItemCaseSensitive(seg, "stop");
+                if((NULL != delete) && (NULL == n)){
+                    ESP_LOGI(TAG, "Delete Json parsing working");
+                    config_delete_segment(id->valueint);
+                }
+
+            }
+
+            cJSON* pal = cJSON_GetObjectItemCaseSensitive(seg, "pal");
+            if(pal != NULL){
+                config_apply_palette(pal->valueint);
+            }
+        }       
     }
     cJSON_Delete(__FUNCTION__, root);
     // memset(start, 0 , BUF_SIZE);
