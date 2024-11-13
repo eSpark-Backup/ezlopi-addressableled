@@ -338,6 +338,6 @@ char* parse_complete_config(char* json)
         seg_json_str = cJSON_PrintUnformatted(__FUNCTION__, state_json);
     }
     cJSON_Delete(__FUNCTION__, root);
-    printf("parse_Complete_config : %s", seg_json_str);
+    // printf("parse_Complete_config : %s", seg_json_str);
     return seg_json_str;
 }

@@ -1319,7 +1319,7 @@ esp_err_t read_config_nvs(char** out_data)
     // Read the blob into the allocated memory
     err = nvs_get_blob(my_handle, "aled_config", *out_data, &required_size);
     if (err == ESP_OK) {
-        printf("Config data: %s\n", *out_data);
+        // printf("Config data: %s\n", *out_data);
     } else {
         printf("Failed to read config from NVS.\n");
         free(*out_data);
