@@ -22,9 +22,11 @@
 // #include "mbedtls/base64.h"
 // #include "mbedtls/md.h"
 #include "nvs_flash.h"
+#include "nvs.h"
 #include "ownled.h"
 #include "palette.h"
 #include "cjext.h"
+#include "uart_reader.h"
 
 static const char *TAG = "#config";
 
@@ -36,6 +38,7 @@ static uint16_t udp_port;
 static char udp_server[32];
 static struct LED_CONFIG led_config;
 static char partition_name[17] = NVS_DEFAULT_PART_NAME;
+
 
 struct LED_CONFIG_CHANNEL_V1_1 {
 	enum LED_MODE mode;
@@ -708,6 +711,21 @@ static void testConfig() {
 
 void config_update_channels() {
 	led_set_config(&led_config);
+
+	char* config_data = NULL;
+	esp_err_t result = read_config_nvs(&config_data);
+
+    if (result == ESP_OK) {
+        // printf("Config data retrieved: %s\n", config_data);
+		char* loaded_state = parse_complete_config(config_data);
+		parse_json(loaded_state);	
+		free(loaded_state);
+    } else {
+        printf("Failed to retrieve config data.\n");
+    }
+
+    // Free the allocated memory after use
+    free(config_data);
 }
 
 void config_init() {
@@ -1266,3 +1284,119 @@ void config_set_segment_name(int id, char* name)
 		}
 	}
 }
+
+esp_err_t read_config_nvs(char** out_data) 
+{
+    nvs_handle_t my_handle;
+    esp_err_t err;
+
+    // Open NVS handle
+    err = nvs_open("aled_namespace", NVS_READONLY, &my_handle);
+    if (err != ESP_OK) {
+        return err;
+    }
+
+    // Determine the size of the blob
+    size_t required_size = 0;
+    err = nvs_get_blob(my_handle, "aled_config", NULL, &required_size);
+    if (err == ESP_ERR_NVS_NOT_FOUND) {
+        printf("Config not found in NVS.\n");
+        nvs_close(my_handle);
+        return err;
+    } else if (err != ESP_OK) {
+        nvs_close(my_handle);
+        return err;
+    }
+
+    // Allocate memory for the blob
+    *out_data = malloc(required_size);
+    if (*out_data == NULL) {
+        printf("Failed to allocate memory.\n");
+        nvs_close(my_handle);
+        return ESP_ERR_NO_MEM;
+    }
+
+    // Read the blob into the allocated memory
+    err = nvs_get_blob(my_handle, "aled_config", *out_data, &required_size);
+    if (err == ESP_OK) {
+        printf("Config data: %s\n", *out_data);
+    } else {
+        printf("Failed to read config from NVS.\n");
+        free(*out_data);
+        *out_data = NULL;  // Set to NULL if reading fails
+    }
+
+    // Close the NVS handle
+    nvs_close(my_handle);
+    return err;
+}
+
+esp_err_t save_config_nvs(const char* data_to_save)
+{
+    nvs_handle_t my_handle;
+    esp_err_t err;
+
+    // Open NVS handle
+    err = nvs_open("aled_namespace", NVS_READWRITE, &my_handle);
+    if (err != ESP_OK) {
+        return err;
+    }
+
+    // Save data as a blob, including the null terminator
+    err = nvs_set_blob(my_handle, "aled_config", data_to_save, strlen(data_to_save) + 1);
+    if (err != ESP_OK) {
+        nvs_close(my_handle);  // Close handle before returning
+        return err;
+    }
+
+    // Commit the changes
+    err = nvs_commit(my_handle);
+    nvs_close(my_handle);  // Close handle after commit
+
+    // Return the result of the commit operation
+    return err;
+}
+
+esp_err_t save_config(esp_err_t (*saver)(const char*))
+{
+    if(NULL == saver)
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
+    char* config_to_save = json_update_config();
+    
+    esp_err_t err = saver(config_to_save);
+    free(config_to_save);
+
+    if(err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Config Save unsuccessfull");
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Config Save successfull");
+    }
+    return err;
+}
+
+#if 0
+esp_err_t load_config(esp_err_t (*loader)(char**), char** buffer_to_load)
+{
+    if(NULL == loader || NULL == buffer_to_load)
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
+    
+    esp_err_t err = loader(buffer_to_load);
+
+    if(err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Config Save unsuccessfull");
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Config Save successfull");
+    }
+    return err;
+}
+#endif

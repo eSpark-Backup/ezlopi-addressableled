@@ -7,4 +7,5 @@ idf_component_register(	SRCS ${srcs}
 							nvs_flash
 							palette
 							cjext
+							uart_reader
 						)

@@ -10,7 +10,6 @@
 
 static const char* TAG = "uart_select_example";
 void parse_json(char* start);
-// char c[1024];
 
 #define ECHO_TEST_TXD 1
 #define ECHO_TEST_RXD 3
@@ -67,6 +66,13 @@ void parse_json(char* start){
     uint32_t rgbcolor[3] = {0};
     if(root != NULL){
         // char *string = cJSON_Print(__FUNCTION__, root);
+        cJSON* message_key = cJSON_GetObjectItemCaseSensitive(root, "message");
+        if(message_key != NULL)
+        {
+            ESP_LOGI(TAG, "Message : %s", message_key->valuestring);
+            save_config(save_config_nvs);
+            return;
+        }
 
         cJSON* bri = cJSON_GetObjectItemCaseSensitive(root, "bri");
         if(bri != NULL){
@@ -89,22 +95,23 @@ void parse_json(char* start){
                 cJSON *sel = cJSON_GetObjectItemCaseSensitive(seg_item, "sel");
                 
 
+                if(cJSON_IsNumber(start) && cJSON_IsNumber(stop))
+                {
+                    printf("Changing segment start stop");
+                    int a_start = start->valueint;
+                    int a_stop = stop->valueint;
+                    config_set_segment_start_stop(item_index, a_start, a_stop-1);
+                    config_set_selected_flag(item_index, true);
+                    vTaskDelay(1000/portTICK_PERIOD_MS);
+                    // config_set_selected_flag(id->valueint, cJSON_IsTrue(sel));
+                }
+                if(!cJSON_IsNumber(start) && cJSON_IsNumber(stop))
+                {
+                    config_delete_segment(item_index);
+                }
+
                 if (cJSON_IsNumber(id)) {
                     
-                    if(cJSON_IsNumber(start) && cJSON_IsNumber(stop))
-                    {
-                        printf("Changing segment start stop");
-                        int a_start = start->valueint;
-                        int a_stop = stop->valueint;
-                        config_set_segment_start_stop(id->valueint, a_start, a_stop-1);
-                        config_set_selected_flag(id->valueint, true);
-                        vTaskDelay(1000/portTICK_PERIOD_MS);
-                        // config_set_selected_flag(id->valueint, cJSON_IsTrue(sel));
-                    }
-                    // if(!cJSON_IsNumber(start) && cJSON_IsNumber(stop))
-                    // {
-                    //     config_delete_segment(id->valueint);
-                    // }
 
                     cJSON* on = cJSON_GetObjectItemCaseSensitive(seg_item, "on");
                     if(on != NULL)            
@@ -184,8 +191,8 @@ void parse_json(char* start){
                     // }
                     config_set_selected_flag(id->valueint, false);
                     // vTaskDelay(400/portTICK_PERIOD_MS);
-                    item_index++;
                 } 
+                item_index++;
             }
 
             for(int i = 0; i < item_index; i++)
@@ -308,4 +315,23 @@ void parse_json(char* start){
     }
     cJSON_Delete(__FUNCTION__, root);
     // memset(start, 0 , BUF_SIZE);
+}
+
+
+char* parse_complete_config(char* json)
+{
+    cJSON* root = cJSON_Parse(__FUNCTION__, json);
+    char* seg_json_str = NULL;
+    if(root)
+    {
+        cJSON *state_json = cJSON_GetObjectItem(__FUNCTION__, root, "state");
+        if (!state_json) {
+            printf("State object not found\n");
+            return NULL;
+        }
+        seg_json_str = cJSON_PrintUnformatted(__FUNCTION__, state_json);
+    }
+    cJSON_Delete(__FUNCTION__, root);
+    printf("parse_Complete_config : %s", seg_json_str);
+    return seg_json_str;
 }

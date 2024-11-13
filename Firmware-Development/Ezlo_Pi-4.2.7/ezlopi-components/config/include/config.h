@@ -13,6 +13,7 @@
 #define MAIN_CONFIG_H_
 
 #include "led.h"
+#include "esp_system.h"
 #include <stdint.h>
 
 #define REVERSE (uint8_t)0x80
@@ -43,6 +44,10 @@ void config_set_option(int id, bool flag, uint8_t bit_mask);
 void config_delete_segment(int id);
 void config_apply_palette(uint8_t palette);
 void config_switch(bool flag);
+esp_err_t save_config(esp_err_t (*saver)(const char*));
+// esp_err_t load_config(esp_err_t (*loader)(const char*));
+esp_err_t save_config_nvs(const char* data_to_save);
+esp_err_t read_config_nvs(char** out_data);
 
 char* json_update_config();
 
