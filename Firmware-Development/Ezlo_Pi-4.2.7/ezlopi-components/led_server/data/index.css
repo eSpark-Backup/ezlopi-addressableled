@@ -1654,8 +1654,8 @@ dialog {
 
 .version {
 	position: fixed;
-	bottom: 10px;
-	right: 10px;
+	top: 10px;
+	left: 10px;
 	font-size: 12px;
 	color: #888;
   }
