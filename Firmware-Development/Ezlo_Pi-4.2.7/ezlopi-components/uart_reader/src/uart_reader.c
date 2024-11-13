@@ -84,6 +84,8 @@ void parse_json(char* start){
         }
 
         cJSON* seg = cJSON_GetObjectItemCaseSensitive(root, "seg");
+        int seg_array_size = cJSON_GetArraySize(seg);
+        bool *save_selection_information = (bool *)malloc(seg_array_size * sizeof(bool));
 
         uint8_t item_index = 0;
         if(cJSON_IsArray(seg))
@@ -96,6 +98,7 @@ void parse_json(char* start){
                 cJSON *start = cJSON_GetObjectItemCaseSensitive(seg_item, "start");
                 cJSON *stop = cJSON_GetObjectItemCaseSensitive(seg_item, "stop");
                 cJSON *sel = cJSON_GetObjectItemCaseSensitive(seg_item, "sel");
+                save_selection_information[item_index] = cJSON_IsTrue(sel);
                 
 
                 if(cJSON_IsNumber(start) && cJSON_IsNumber(stop))
@@ -105,7 +108,7 @@ void parse_json(char* start){
                     int a_stop = stop->valueint;
                     config_set_segment_start_stop(item_index, a_start, a_stop-1);
                     config_set_selected_flag(item_index, true);
-                    vTaskDelay(1000/portTICK_PERIOD_MS);
+                    vTaskDelay(100/portTICK_PERIOD_MS);
                     // config_set_selected_flag(id->valueint, cJSON_IsTrue(sel));
                 }
                 if(!cJSON_IsNumber(start) && cJSON_IsNumber(stop))
@@ -200,7 +203,7 @@ void parse_json(char* start){
 
             for(int i = 0; i < item_index; i++)
             {
-                config_set_selected_flag(i, true);
+                config_set_selected_flag(i, save_selection_information[i]);
             }
         }
         else
