@@ -446,7 +446,7 @@
 
 		// Function to send the POST request using Fetch API
 	document.getElementById("postButton").addEventListener("click", function() {
-	const data = { message: "Hello, server!" }; // You can send any data you need
+	const data = { command: "save_config" }; // You can send any data you need
 
 	fetch('/json/si', {
 		method: 'POST',  // HTTP method

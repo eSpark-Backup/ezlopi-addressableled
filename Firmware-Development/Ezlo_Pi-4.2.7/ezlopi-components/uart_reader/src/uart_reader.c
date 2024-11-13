@@ -66,11 +66,14 @@ void parse_json(char* start){
     uint32_t rgbcolor[3] = {0};
     if(root != NULL){
         // char *string = cJSON_Print(__FUNCTION__, root);
-        cJSON* message_key = cJSON_GetObjectItemCaseSensitive(root, "message");
+        cJSON* message_key = cJSON_GetObjectItemCaseSensitive(root, "command");
         if(message_key != NULL)
         {
-            ESP_LOGI(TAG, "Message : %s", message_key->valuestring);
-            save_config(save_config_nvs);
+            ESP_LOGI(TAG, "Command recieved from ALED UI side : %s", message_key->valuestring);
+            if(strcmp(message_key->valuestring, "save_config") == 0)
+            {
+                save_config(save_config_nvs);
+            }
             return;
         }
 
