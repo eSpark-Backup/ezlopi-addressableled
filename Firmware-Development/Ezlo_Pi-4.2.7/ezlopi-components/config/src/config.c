@@ -713,7 +713,8 @@ void config_update_channels() {
 	led_set_config(&led_config);
 
 	char* config_data = NULL;
-	esp_err_t result = read_config_nvs(&config_data);
+	
+	esp_err_t result = load_config(read_config_nvs, &config_data);
 
     if (result == ESP_OK) {
         // printf("Config data retrieved: %s\n", config_data);
@@ -1379,7 +1380,6 @@ esp_err_t save_config(esp_err_t (*saver)(const char*))
     return err;
 }
 
-#if 0
 esp_err_t load_config(esp_err_t (*loader)(char**), char** buffer_to_load)
 {
     if(NULL == loader || NULL == buffer_to_load)
@@ -1399,4 +1399,3 @@ esp_err_t load_config(esp_err_t (*loader)(char**), char** buffer_to_load)
     }
     return err;
 }
-#endif

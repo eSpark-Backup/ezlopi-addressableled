@@ -45,7 +45,7 @@ void config_delete_segment(int id);
 void config_apply_palette(uint8_t palette);
 void config_switch(bool flag);
 esp_err_t save_config(esp_err_t (*saver)(const char*));
-// esp_err_t load_config(esp_err_t (*loader)(const char*));
+esp_err_t load_config(esp_err_t (*loader)(char**), char** buffer_to_load);
 esp_err_t save_config_nvs(const char* data_to_save);
 esp_err_t read_config_nvs(char** out_data);
 
