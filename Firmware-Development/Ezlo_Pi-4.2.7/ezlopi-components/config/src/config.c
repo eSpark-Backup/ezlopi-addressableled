@@ -989,6 +989,9 @@ void config_set_channels(uint8_t seg_id) {
 	led_config.channel[led_config.channels]->palette = DEFAULT_PALETTE; 
 	led_config.channel[led_config.channels]->group_set = 0;
 	led_config.channel[led_config.channels]->is_on = true;
+	char name_arr[32] = {0};
+	snprintf(name_arr, 32, "Segment %d", seg_id);
+	led_config.channel[led_config.channels]->segment_name = strdup(name_arr);
 
 
 	led_config.channels++;
@@ -1271,13 +1274,15 @@ void config_set_segment_name(int id, char* name)
 			if(led_config.channel[i]->segment_name != NULL)
 			{
 				free(led_config.channel[i]->segment_name);
+				led_config.channel[i]->segment_name = NULL;
 			}
-			if(NULL == name)
+			if(0 == strcmp(name, ""))
 			{
-				name = malloc(sizeof(char)*64);
-				sprintf(name,32,"Segment %d", led_config.channel[i]->segment_id);
-				led_config.channel[i]->segment_name = strdup(name);
-			free(name);
+				led_config.channel[i]->segment_name = malloc(sizeof(char)*32);
+				if(led_config.channel[i]->segment_name)
+				{
+					snprintf(led_config.channel[i]->segment_name,32,"Segment %d", led_config.channel[i]->segment_id);
+				}
 			}
 			else{
 				led_config.channel[i]->segment_name = strdup(name);
